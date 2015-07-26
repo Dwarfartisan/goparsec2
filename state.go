@@ -17,7 +17,17 @@ type BasicState struct {
 }
 
 // NewBasicState 构造一个新的 BasicState
-func NewBasicState(data string) BasicState {
+func NewBasicState(data []interface{}) BasicState {
+	buffer := make([]interface{}, len(data))
+	copy(data, buffer)
+	return BasicState{
+		buffer,
+		0,
+	}
+}
+
+// BasicStateFromText 构造一个新的 BasicState
+func BasicStateFromText(data string) BasicState {
 	buffer := make([]interface{}, len(data), 0)
 	for r := range data {
 		buffer = append(buffer, r)
