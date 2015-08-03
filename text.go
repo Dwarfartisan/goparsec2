@@ -12,7 +12,7 @@ func Chr(val rune) Parsec {
 		if err != nil {
 			return nil, err
 		}
-		if c, ok := x.(rune); ok {
+		if c, ok := x.(int32); ok {
 			if c == val {
 				return c, nil
 			}
@@ -29,7 +29,7 @@ func NChr(val rune) Parsec {
 		if err != nil {
 			return nil, err
 		}
-		if c, ok := x.(rune); ok {
+		if c, ok := x.(int32); ok {
 			if c == val {
 				return nil, state.Trap("Expact not '%v' but '%v'", string([]rune{val}), string([]rune{c}))
 			}
@@ -47,7 +47,7 @@ func RuneOf(str string) Parsec {
 		if err != nil {
 			return nil, err
 		}
-		if c, ok := x.(rune); ok {
+		if c, ok := x.(int32); ok {
 			for _, r := range data {
 				if c == r {
 					return c, nil
@@ -55,7 +55,7 @@ func RuneOf(str string) Parsec {
 			}
 			return nil, state.Trap("Expact rune in '%s' but '%s'", str, string([]rune{c}))
 		}
-		return nil, state.Trap("Expact rune in '%s' but x is %v", str, x)
+		return nil, state.Trap("Expact rune in '%s' but x=%v is %t", str, x, x)
 	}}
 }
 
@@ -67,7 +67,7 @@ func RuneNone(str string) Parsec {
 		if err != nil {
 			return nil, err
 		}
-		if c, ok := x.(rune); ok {
+		if c, ok := x.(int32); ok {
 			for _, r := range data {
 				if c == r {
 					return nil, state.Trap("Expact rune none of '%s' but '%s'", str, string([]rune{c}))
@@ -75,7 +75,7 @@ func RuneNone(str string) Parsec {
 			}
 			return c, nil
 		}
-		return nil, state.Trap("Expact rune none of '%s' but x is %v", str, x)
+		return nil, state.Trap("Expact rune none of '%s' but x=%v is %t", str, x, x)
 	}}
 }
 
@@ -100,13 +100,14 @@ func RuneParsec(name string, pred func(r rune) bool) Parsec {
 		if err != nil {
 			return nil, err
 		}
-		if c, ok := x.(rune); ok {
-			if pred(c) {
+		if c, ok := x.(int32); ok {
+			r := rune(c)
+			if pred(r) {
 				return c, nil
 			}
-			return nil, state.Trap("Expact %s but '%v'", name, string([]rune{c}))
+			return nil, state.Trap("Expact %s but '%v'", name, string([]rune{r}))
 		}
-		return nil, state.Trap("Expact name but x is %v", name, x)
+		return nil, state.Trap("Expact %s but x=%v is %t", name, x, x)
 	}}
 }
 
@@ -134,7 +135,7 @@ func Digit() Parsec {
 func UInt() Parsec {
 	return Many1(Digit()).Bind(func(values interface{}) Parsec {
 		buffer := values.([]interface{})
-		data := make([]rune, len(buffer), 0)
+		data := make([]rune, 0, len(buffer))
 		for _, value := range buffer {
 			data = append(data, value.(rune))
 		}

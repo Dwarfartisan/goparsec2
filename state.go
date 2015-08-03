@@ -27,9 +27,10 @@ func NewBasicState(data []interface{}) BasicState {
 }
 
 // BasicStateFromText 构造一个新的 BasicState
-func BasicStateFromText(data string) BasicState {
-	buffer := make([]interface{}, len(data), 0)
-	for r := range data {
+func BasicStateFromText(str string) BasicState {
+	data := []rune(str)
+	buffer := make([]interface{}, 0, len(data))
+	for _, r := range data {
 		buffer = append(buffer, r)
 	}
 	return BasicState{
