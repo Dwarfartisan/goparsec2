@@ -1,8 +1,8 @@
 package goparsec2
 
 import (
-	"fmt"
 	"unicode"
+	"fmt"
 )
 
 // Chr 判断下一个字符是否与给定值相等
