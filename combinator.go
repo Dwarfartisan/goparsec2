@@ -86,7 +86,7 @@ func Skip(p Parsec) Parsec {
 		for {
 			_, err := Try(p).Parse(state)
 			if err != nil {
-				return nil, err
+				return nil, nil
 			}
 		}
 	}}
