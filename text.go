@@ -9,6 +9,7 @@ import (
 func Chr(val rune) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
 		x, err := state.Next()
+		fmt.Printf("expect %c    get %c \n", val , x)
 		if err != nil {
 			return nil, err
 		}
@@ -16,9 +17,9 @@ func Chr(val rune) Parsec {
 			if c == val {
 				return c, nil
 			}
-			return nil, state.Trap("Expact '%v' but '%v'", string([]rune{val}), string([]rune{c}))
+			return nil, state.Trap("Expect '%v' but '%v'", string([]rune{val}), string([]rune{c}))
 		}
-		return nil, state.Trap("Expact a rune '%s' but x is %v", string([]rune{val}), x)
+		return nil, state.Trap("Expect a rune '%s' but x is %v", string([]rune{val}), x)
 	}}
 }
 
@@ -31,11 +32,11 @@ func NChr(val rune) Parsec {
 		}
 		if c, ok := x.(int32); ok {
 			if c == val {
-				return nil, state.Trap("Expact not '%v' but '%v'", string([]rune{val}), string([]rune{c}))
+				return nil, state.Trap("Expect not '%v' but '%v'", string([]rune{val}), string([]rune{c}))
 			}
 			return c, nil
 		}
-		return nil, state.Trap("Expact a rune '%s' but x is %v", string([]rune{val}), x)
+		return nil, state.Trap("Expect a rune '%s' but x is %v", string([]rune{val}), x)
 	}}
 }
 
@@ -53,9 +54,9 @@ func RuneOf(str string) Parsec {
 					return c, nil
 				}
 			}
-			return nil, state.Trap("Expact rune in '%s' but '%s'", str, string([]rune{c}))
+			return nil, state.Trap("Expect rune in '%s' but '%s'", str, string([]rune{c}))
 		}
-		return nil, state.Trap("Expact rune in '%s' but x=%v is %t", str, x, x)
+		return nil, state.Trap("Expect rune in '%s' but x=%v is %t", str, x, x)
 	}}
 }
 
@@ -70,12 +71,12 @@ func RuneNone(str string) Parsec {
 		if c, ok := x.(int32); ok {
 			for _, r := range data {
 				if c == r {
-					return nil, state.Trap("Expact rune none of '%s' but '%s'", str, string([]rune{c}))
+					return nil, state.Trap("Expect rune none of '%s' but '%s'", str, string([]rune{c}))
 				}
 			}
 			return c, nil
 		}
-		return nil, state.Trap("Expact rune none of '%s' but x=%v is %t", str, x, x)
+		return nil, state.Trap("Expect rune none of '%s' but x=%v is %t", str, x, x)
 	}}
 }
 
@@ -105,9 +106,9 @@ func RuneParsec(name string, pred func(r rune) bool) Parsec {
 			if pred(r) {
 				return c, nil
 			}
-			return nil, state.Trap("Expact %s but '%v'", name, string([]rune{r}))
+			return nil, state.Trap("Expect %s but '%v'", name, string([]rune{r}))
 		}
-		return nil, state.Trap("Expact %s but x=%v is %t", name, x, x)
+		return nil, state.Trap("Expect %s but x=%v is %t", name, x, x)
 	}}
 }
 
@@ -139,6 +140,7 @@ func UInt() Parsec {
 		for _, value := range buffer {
 			data = append(data, value.(rune))
 		}
+		fmt.Println("",values)
 		return Return(string(data))
 	})
 }
@@ -155,6 +157,7 @@ func Int() Parsec {
 func UFloat() Parsec {
 	return UInt().Over(Chr('.')).Bind(func(left interface{}) Parsec {
 		return UInt().Bind(func(right interface{}) Parsec {
+			fmt.Println("UFloat run")
 			return Return(fmt.Sprintf("%s.%s", left, right))
 		})
 	})
