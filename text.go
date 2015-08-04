@@ -146,9 +146,9 @@ func UInt() Parsec {
 // Int 返回一个有符号整型的解析算子
 func Int() Parsec {
 	binder := func(value interface{}) Parsec {
-		return Return("-" + value.(string))
+		return Return(fmt.Sprintf("-%v" + value.(string)))
 	}
-	return Choice(Chr('-').Then(UInt()).Bind(binder), Return("").Then(UInt()))
+	return Choice(Try(Chr('-').Then(UInt()).Bind(binder)), Return("").Then(UInt()))
 }
 
 // UFloat 返回一个无符号实数的解析算子
@@ -165,5 +165,5 @@ func Float() Parsec {
 	binder := func(value interface{}) Parsec {
 		return Return("-" + value.(string))
 	}
-	return Choice(Chr('-').Then(UFloat()).Bind(binder), Return("").Then(UFloat()))
+	return Choice(Try(Chr('-').Then(UFloat()).Bind(binder)), UFloat())
 }
