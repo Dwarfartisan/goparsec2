@@ -1,5 +1,4 @@
 package goparsec2
-
 // Parsec 是算子的公共抽象类型，实现 Monad 和解析逻辑
 type Parsec struct {
 	Psc func(state State) (interface{}, error)

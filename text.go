@@ -1,8 +1,8 @@
 package goparsec2
 
 import (
-	"fmt"
 	"unicode"
+	"fmt"
 )
 
 // Chr 判断下一个字符是否与给定值相等
@@ -148,7 +148,7 @@ func Int() Parsec {
 	binder := func(value interface{}) Parsec {
 		return Return("-" + value.(string))
 	}
-	return Choice(Chr('-').Then(UInt()).Bind(binder), Return("").Then(UInt()))
+	return Choice(Try(Chr('-').Then(UInt()).Bind(binder)), Return("").Then(UInt()))
 }
 
 // UFloat 返回一个无符号实数的解析算子

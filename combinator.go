@@ -16,7 +16,6 @@ func Try(psc Parsec) Parsec {
 // Choice 逐个常识给定的算子，直到某个成功或者 state 无法复位，或者全部失败
 func Choice(parsecs ...Parsec) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
-		var err error
 		for _, p := range parsecs {
 			idx := state.Pos()
 			re, err := p.Parse(state)
@@ -27,7 +26,7 @@ func Choice(parsecs ...Parsec) Parsec {
 				return nil, err
 			}
 		}
-		return nil, err
+		return nil, state.Trap("choice all dead")
 	}}
 }
 
@@ -84,7 +83,7 @@ func Skip(p Parsec) Parsec {
 		for {
 			_, err := Try(p).Parse(state)
 			if err != nil {
-				return nil, err
+				return nil, nil
 			}
 		}
 	}}
