@@ -18,15 +18,21 @@ func Try(psc Parsec) Parsec {
 // Choice 逐个常识给定的算子，直到某个成功或者 state 无法复位，或者全部失败
 func Choice(parsecs ...Parsec) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
+		var err error
 		for _, p := range parsecs {
+			var re interface{}
 			idx := state.Pos()
-			re, err := p.Parse(state)
+			re, err = p.Parse(state)
 			if err == nil {
 				return re, nil
 			}
 			if state.Pos() != idx {
 				return nil, err
 			}
+		}
+		// 下面这个判断确保最后一个算子是 Fail 之类的零步进算子时，也能把错误信息传递出来。
+		if err != nil {
+			return nil, err
 		}
 		return nil, state.Trap("choice all dead")
 	}}
