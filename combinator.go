@@ -1,5 +1,7 @@
 package goparsec2
 
+import "fmt"
+
 // Try 尝试运行给定算子，如果给定算子报错，将state复位再返回错误信息
 func Try(psc Parsec) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
@@ -92,4 +94,93 @@ func Skip(p Parsec) Parsec {
 // Skip1 忽略指定 1 到若干次算子
 func Skip1(p Parsec) Parsec {
 	return p.Then(Skip(p))
+}
+
+// FailIf 是算子的否定检查，如果给定算子匹配成功，返回错误信息。否则退换复位并且返回 nil，
+// 可以用于边界检查。
+func FailIf(psc Parsec) Parsec {
+	message := fmt.Sprintf("Expect the parsec %v failed but it success.", psc)
+	return Choice(Try(psc).Then(Fail(message)), Return(nil))
+}
+
+// Repeat 函数生成一个 parsec 算子，它匹配指定算子x到y次。
+func Repeat(x, y int, psc Parsec) Parsec {
+	if x >= y {
+		message, _ := fmt.Printf("x must greater than y but x=%d and y=%d", x, y)
+		panic(message)
+	}
+	return Times(x, psc).Bind(func(val interface{}) Parsec {
+		return UpTo(y-x, psc).Bind(func(y interface{}) Parsec {
+			buffer := val.([]interface{})
+			buffer = append(buffer, y.([]interface{})...)
+			return Return(buffer)
+		})
+	})
+}
+
+// InRange 函数生成一个 parsec 算子，它匹配指定算子x到y次。如果第 y+1 次仍然成功，返回错误信息
+func InRange(x, y int, psc Parsec) Parsec {
+	if x >= y {
+		message, _ := fmt.Printf("x must greater than y but x=%d and y=%d", x, y)
+		panic(message)
+	}
+	return Times(x, psc).Bind(func(val interface{}) Parsec {
+		return AtMost(y-x, psc).Bind(func(y interface{}) Parsec {
+			buffer := val.([]interface{})
+			buffer = append(buffer, y.([]interface{})...)
+			return Return(buffer)
+		})
+	})
+}
+
+// UpTo 函数匹配 0 到 x 次 psc
+func UpTo(x int, psc Parsec) Parsec {
+	return Parsec{func(state State) (interface{}, error) {
+		var re = make([]interface{}, 0, x)
+		for i := 0; i < x; i++ {
+			item, err := Try(psc).Parse(state)
+			if err != nil {
+				return re, nil
+			}
+			re = append(re, item)
+		}
+		return re, nil
+	}}
+}
+
+// AtMost 函数匹配至多 x 次 psc ，如果后续的数据仍然匹配成功，返回错误信息
+func AtMost(x int, psc Parsec) Parsec {
+	return UpTo(x, psc).Bind(func(val interface{}) Parsec {
+		re := val.([]interface{})
+		if len(re) < x {
+			return Return(val)
+		}
+		return FailIf(psc)
+	})
+}
+
+// AtLeast 函数匹配至少 x 次 psc
+func AtLeast(x int, psc Parsec) Parsec {
+	return Times(x, psc).Bind(func(valx interface{}) Parsec {
+		return Many(psc).Bind(func(valy interface{}) Parsec {
+			var re = valx.([]interface{})
+			re = append(re, valy.([]interface{})...)
+			return Return(re)
+		})
+	})
+}
+
+// Times 函数生成一个 parsec 算子，它匹配指定算子x次。我们在这里用它构造一个不严谨的ip判定
+func Times(x int, psc Parsec) Parsec {
+	return Parsec{func(state State) (interface{}, error) {
+		var re = make([]interface{}, 0, x)
+		for i := 0; i < x; i++ {
+			item, err := psc.Parse(state)
+			if err != nil {
+				return nil, err
+			}
+			re = append(re, item)
+		}
+		return re, nil
+	}}
 }
