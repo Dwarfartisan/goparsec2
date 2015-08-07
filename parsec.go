@@ -1,4 +1,5 @@
 package goparsec2
+import "fmt"
 // Parsec 是算子的公共抽象类型，实现 Monad 和解析逻辑
 type Parsec struct {
 	Psc func(state State) (interface{}, error)
@@ -36,6 +37,7 @@ func (parsec Parsec) Then(psc Parsec) Parsec {
 func (parsec Parsec) Over(psc Parsec) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
 		re, err := parsec.Psc(state)
+		fmt.Println("over run")
 		if err != nil {
 			return nil, err
 		}
