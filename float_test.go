@@ -1,16 +1,12 @@
 package goparsec2
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func TestFloat0(t *testing.T) {
 	data := "3.14"
 	state := BasicStateFromText(data)
 	re, err := UFloat().Parse(&state)
 	if err != nil {
-		fmt.Println(state.Pos())
 		t.Fatal(err)
 	}
 	if output, ok := re.(string); ok {
@@ -26,7 +22,6 @@ func TestFloat1(t *testing.T) {
 	state := BasicStateFromText(data)
 	re, err := Float().Parse(&state)
 	if err != nil {
-		fmt.Println(state.Pos())
 		t.Fatal(err)
 	}
 	if output, ok := re.(string); ok {

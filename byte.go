@@ -1,12 +1,9 @@
 package goparsec2
 
-import "fmt"
-
 // Byte 判断下一个字节是否与给定值相等
 func Byte(val byte) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
 		x, err := state.Next()
-		fmt.Printf("expect %c    get %c \n", val, x)
 		if err != nil {
 			return nil, err
 		}

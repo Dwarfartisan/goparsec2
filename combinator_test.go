@@ -38,7 +38,6 @@ func TestListen(t *testing.T) {
 	state := BasicStateFromText(data)
 	re, err := listen.Parse(&state)
 	if err != nil {
-		fmt.Println(state.Pos())
 		t.Fatal(err)
 	}
 	var output []string

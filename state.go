@@ -19,7 +19,7 @@ type BasicState struct {
 // NewBasicState 构造一个新的 BasicState
 func NewBasicState(data []interface{}) BasicState {
 	buffer := make([]interface{}, len(data))
-	copy(data, buffer)
+	copy(buffer, data)
 	return BasicState{
 		buffer,
 		0,
@@ -75,5 +75,5 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	return e.Message
+	return fmt.Sprintf("stop at %d : %v", e.Pos, e.Message)
 }

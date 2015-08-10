@@ -15,7 +15,7 @@ func Try(psc Parsec) Parsec {
 	}}
 }
 
-// Choice 逐个常识给定的算子，直到某个成功或者 state 无法复位，或者全部失败
+// Choice 逐个尝试给定的算子，直到某个成功或者 state 无法复位，或者全部失败
 func Choice(parsecs ...Parsec) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
 		var err error
@@ -30,11 +30,8 @@ func Choice(parsecs ...Parsec) Parsec {
 				return nil, err
 			}
 		}
-		// 下面这个判断确保最后一个算子是 Fail 之类的零步进算子时，也能把错误信息传递出来。
-		if err != nil {
-			return nil, err
-		}
-		return nil, state.Trap("choice all dead")
+		//下面这个分支确保最后一个算子是 Fail 之类的零步进算子时，也能把错误信息传递出来。
+		return nil, err
 	}}
 }
 
@@ -61,18 +58,18 @@ func Between(b, psc, e Parsec) Parsec {
 
 // SepBy1 返回匹配 1 到若干次的带分隔符的算子
 func SepBy1(p, sep Parsec) Parsec {
-	tail := func(value interface{}) Parsec {
-		head := Many(Try(sep.Then(p)))
+	binder := func(value interface{}) Parsec {
+		head := Many(sep.Then(p))
 		return head.Bind(func(values interface{}) Parsec {
 			return Return(append([]interface{}{value}, values.([]interface{})...))
 		})
 	}
-	return p.Bind(tail)
+	return p.Bind(binder)
 }
 
 // SepBy 返回匹配 0 到若干次的带分隔符的算子
 func SepBy(p, sep Parsec) Parsec {
-	return Choice(SepBy1(Try(p), sep), Return([]interface{}{}))
+	return Choice(Try(SepBy1(p, sep)), Return([]interface{}{}))
 }
 
 // ManyTil 返回以指定算子结尾的  Many
@@ -85,7 +82,7 @@ func Many1Til(p, e Parsec) Parsec {
 	return Many1(p).Over(e)
 }
 
-// Skip 忽略指定 0 到若干次算子
+// Skip 忽略 0 到若干次指定算子
 func Skip(p Parsec) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
 		for {
@@ -97,7 +94,7 @@ func Skip(p Parsec) Parsec {
 	}}
 }
 
-// Skip1 忽略指定 1 到若干次算子
+// Skip1 忽略 1 到若干次指定算子
 func Skip1(p Parsec) Parsec {
 	return p.Then(Skip(p))
 }
@@ -112,7 +109,7 @@ func FailIf(psc Parsec) Parsec {
 // Repeat 函数生成一个 parsec 算子，它匹配指定算子x到y次。
 func Repeat(x, y int, psc Parsec) Parsec {
 	if x >= y {
-		message, _ := fmt.Printf("x must greater than y but x=%d and y=%d", x, y)
+		message := fmt.Sprintf("x must greater than y but x=%d and y=%d", x, y)
 		panic(message)
 	}
 	return Times(x, psc).Bind(func(val interface{}) Parsec {
@@ -127,7 +124,7 @@ func Repeat(x, y int, psc Parsec) Parsec {
 // InRange 函数生成一个 parsec 算子，它匹配指定算子x到y次。如果第 y+1 次仍然成功，返回错误信息
 func InRange(x, y int, psc Parsec) Parsec {
 	if x >= y {
-		message, _ := fmt.Printf("x must greater than y but x=%d and y=%d", x, y)
+		message := fmt.Sprintf("x must greater than y but x=%d and y=%d", x, y)
 		panic(message)
 	}
 	return Times(x, psc).Bind(func(val interface{}) Parsec {

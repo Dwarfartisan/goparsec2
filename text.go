@@ -1,15 +1,14 @@
 package goparsec2
 
 import (
-	"unicode"
 	"fmt"
+	"unicode"
 )
 
 // Chr 判断下一个字符是否与给定值相等
 func Chr(val rune) Parsec {
 	return Parsec{func(state State) (interface{}, error) {
 		x, err := state.Next()
-		fmt.Printf("expect %c    get %c \n", val , x)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +139,6 @@ func UInt() Parsec {
 		for _, value := range buffer {
 			data = append(data, value.(rune))
 		}
-		fmt.Println("",values)
 		return Return(string(data))
 	})
 }
@@ -157,7 +155,6 @@ func Int() Parsec {
 func UFloat() Parsec {
 	return UInt().Over(Chr('.')).Bind(func(left interface{}) Parsec {
 		return UInt().Bind(func(right interface{}) Parsec {
-			fmt.Println("UFloat run")
 			return Return(fmt.Sprintf("%s.%s", left, right))
 		})
 	})
