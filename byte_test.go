@@ -205,9 +205,8 @@ func TestJsonTrue0(t *testing.T) {
 		t.Fatal(err)
 	}
 	state := testState(string(buffer))
-	_, err = j().Parse(state)
+	_, err = j().Then(EOF()).Parse(state)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 }
