@@ -153,13 +153,11 @@ func Int() Parsec {
 
 // UFloat 返回一个无符号实数的解析算子
 func UFloat() Parsec {
-	return Parsec{func(state State) (interface{}, error) {
-		return Do(func() interface{} {
-			left := Choice(Try(UInt().Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
-			right := UInt().Exec(state)
-			return fmt.Sprintf("%s.%s", left, right)
-		})
-	}}
+	return Do(func(state State) interface{} {
+		left := Choice(Try(UInt().Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
+		right := UInt().Exec(state)
+		return fmt.Sprintf("%s.%s", left, right)
+	})
 }
 
 // Float 返回一个有符号实数的解析算子
