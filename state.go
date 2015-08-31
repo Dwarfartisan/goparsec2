@@ -7,7 +7,7 @@ type State interface {
 	Pos() int
 	SeekTo(idx int) bool
 	Next() (interface{}, error)
-	Trap(message string, args ...interface{}) Error
+	Trap(message string, args ...interface{}) error
 }
 
 // BasicState 实现最基本的 State 操作
@@ -64,7 +64,7 @@ func (state *BasicState) Next() (interface{}, error) {
 }
 
 // Trap 是构造错误信息的辅助函数，它传递错误的位置，并提供字符串格式化功能
-func (state *BasicState) Trap(message string, args ...interface{}) Error {
+func (state *BasicState) Trap(message string, args ...interface{}) error {
 	return Error{state.index, fmt.Sprintf(message, args...)}
 }
 

@@ -81,6 +81,7 @@ func node() Parsec {
 		return Try(j()).Parse(state)
 	}}
 }
+
 func TestNode0(t *testing.T) {
 	state := testState("\"It is a node .\"")
 	_, err := node().Then(EOF()).Parse(state)
@@ -136,8 +137,6 @@ func TestArrayBody2(t *testing.T) {
 func TestArrayBody3(t *testing.T) {
 	state := testState("1,1,2,3,5,8,13,21,34,55,89")
 	_, err := arrayBody().Then(EOF()).Parse(state)
-	//_, err := SepBy1(Byte(','), Skip1(ByteNone(","))).Then(EOF()).Parse(state)
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,6 +156,7 @@ func TestPair(t *testing.T) {
 func dictBody() Parsec {
 	return SepBy(pair(), skipComma)
 }
+
 func TestDictBody(t *testing.T) {
 	state := testState("\"content\" : [\"quit\"]")
 	_, err := dictBody().Then(EOF()).Parse(state)
@@ -172,9 +172,6 @@ func dict() Parsec {
 }
 func TestDict0(t *testing.T) {
 	data := map[string]interface{}{
-		// "meta": map[string]interface{}{
-		// 	"category": "command",
-		// },
 		"content": []interface{}{"quit"},
 	}
 	buffer, err := json.Marshal(data)
@@ -186,7 +183,6 @@ func TestDict0(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 }
 
 func j() Parsec {
