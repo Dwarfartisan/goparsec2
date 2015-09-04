@@ -1,7 +1,7 @@
 # Go Parsec 2
 
-这个版本不是 [goparsec](http://github.com/Dwarfartisan/goparsec) 的改进版，而是一次练
-习， 尝试在 golang 的语法限制下尽可能做到表达清晰简洁。要做比较完美的重构，大概要等到我有时间
-学习一下编译原理，掌握把 gisp 代码 generate 为 go 代码的技术后了。
+Go Parsec 2 改写了 [goparsec](http://github.com/Dwarfartisan/goparsec) 。在性能上作出一定让步后，对结构和形式做出了改良。
 
-还没测试，这就是星期天心情不错写着玩的。嘿嘿。
+Go Parsec 2中，bind 不再是一个 parsec 算子，而是所有 Parsec 算子的 Monad 特征。所有的 Parsec 算子都组合为带 Bind/Then/Over 的结构。 Go Parsec 2 提供了一些方法简化这些封装操作。
+
+提供了 Do 形式。
