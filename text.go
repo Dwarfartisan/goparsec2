@@ -167,3 +167,19 @@ func Float() Parsec {
 	}
 	return Choice(Try(Chr('-').Then(UFloat()).Bind(binder)), UFloat())
 }
+
+// ToString 将封装为 interface{} 的 []interface{} 转成 string，如果输入数据与前面提到的规范不符，会 panic
+func ToString(input interface{}) string {
+	data := input.([]interface{})
+	l := len(data)
+	buffer := make([]rune, l)
+	for index, item := range data {
+		buffer[index] = item.(rune)
+	}
+	return string(buffer)
+}
+
+// ReturnString 用 Return 包装 ToString，使其适用于组合子表达式。
+func ReturnString(input interface{}) Parsec {
+	return Return(ToString(input))
+}
