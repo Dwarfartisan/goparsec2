@@ -69,7 +69,7 @@ var skipColon = spaces.Then(Byte(':')).Then(spaces)
 var skipComma = spaces.Then(Byte(',')).Then(spaces)
 
 func node() Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		re, err := Try(str).Parse(state)
 		if err == nil {
 			return re, nil
@@ -79,7 +79,7 @@ func node() Parsec {
 			return re, nil
 		}
 		return Try(j()).Parse(state)
-	}}
+	}
 }
 
 func TestNode0(t *testing.T) {

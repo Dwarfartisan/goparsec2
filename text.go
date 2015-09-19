@@ -7,7 +7,7 @@ import (
 
 // Chr 判断下一个字符是否与给定值相等
 func Chr(val rune) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
 			return nil, err
@@ -19,12 +19,12 @@ func Chr(val rune) Parsec {
 			return nil, state.Trap("Expect '%v' but '%v'", string([]rune{val}), string([]rune{c}))
 		}
 		return nil, state.Trap("Expect a rune '%s' but x is %v", string([]rune{val}), x)
-	}}
+	}
 }
 
 // NChr 判断下一个字符是否与给定值不相等
 func NChr(val rune) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
 			return nil, err
@@ -36,13 +36,13 @@ func NChr(val rune) Parsec {
 			return c, nil
 		}
 		return nil, state.Trap("Expect a rune '%s' but x is %v", string([]rune{val}), x)
-	}}
+	}
 }
 
 // RuneOf 检查后续的字符是否是给定值中的某一个
 func RuneOf(str string) Parsec {
 	data := []rune(str)
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
 			return nil, err
@@ -56,13 +56,13 @@ func RuneOf(str string) Parsec {
 			return nil, state.Trap("Expect rune in '%s' but '%s'", str, string([]rune{c}))
 		}
 		return nil, state.Trap("Expect rune in '%s' but x=%v is %t", str, x, x)
-	}}
+	}
 }
 
 // RuneNone 检查后续的字符是否不是给定值中的任一个
 func RuneNone(str string) Parsec {
 	data := []rune(str)
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
 			return nil, err
@@ -76,13 +76,13 @@ func RuneNone(str string) Parsec {
 			return c, nil
 		}
 		return nil, state.Trap("Expect rune none of '%s' but x=%v is %t", str, x, x)
-	}}
+	}
 }
 
 // Str 判断后续的字符串是否匹配给定的串
 func Str(str string) Parsec {
 	data := []rune(str)
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		for _, r := range data {
 			_, err := Chr(r).Parse(state)
 			if err != nil {
@@ -90,12 +90,12 @@ func Str(str string) Parsec {
 			}
 		}
 		return str, nil
-	}}
+	}
 }
 
 // RuneParsec 通过一个谓词参数，提供通用的 rune 算子生成判断
 func RuneParsec(name string, pred func(r rune) bool) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
 			return nil, err
@@ -108,7 +108,7 @@ func RuneParsec(name string, pred func(r rune) bool) Parsec {
 			return nil, state.Trap("Expect %s but '%v'", name, string([]rune{r}))
 		}
 		return nil, state.Trap("Expect %s but x=%v is %t", name, x, x)
-	}}
+	}
 }
 
 // Space 构造一个空格校验算子

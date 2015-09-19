@@ -4,7 +4,7 @@ import "fmt"
 
 // Try 尝试运行给定算子，如果给定算子报错，将state复位再返回错误信息
 func Try(psc Parsec) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		idx := state.Pos()
 		re, err := psc.Parse(state)
 		if err == nil {
@@ -12,12 +12,12 @@ func Try(psc Parsec) Parsec {
 		}
 		state.SeekTo(idx)
 		return nil, err
-	}}
+	}
 }
 
 // Choice 逐个尝试给定的算子，直到某个成功或者 state 无法复位，或者全部失败
 func Choice(parsecs ...Parsec) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		var err error
 		for _, p := range parsecs {
 			var re interface{}
@@ -32,7 +32,7 @@ func Choice(parsecs ...Parsec) Parsec {
 		}
 		//下面这个分支确保最后一个算子是 Fail 之类的零步进算子时，也能把错误信息传递出来。
 		return nil, err
-	}}
+	}
 }
 
 // Many 匹配 0 到若干次 psc 并返回结果序列
@@ -84,14 +84,14 @@ func Many1Til(p, e Parsec) Parsec {
 
 // Skip 忽略 0 到若干次指定算子
 func Skip(p Parsec) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		for {
 			_, err := Try(p).Parse(state)
 			if err != nil {
 				return nil, nil
 			}
 		}
-	}}
+	}
 }
 
 // Skip1 忽略 1 到若干次指定算子
@@ -138,7 +138,7 @@ func InRange(x, y int, psc Parsec) Parsec {
 
 // UpTo 函数匹配 0 到 x 次 psc
 func UpTo(x int, psc Parsec) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		var re = make([]interface{}, 0, x)
 		for i := 0; i < x; i++ {
 			item, err := Try(psc).Parse(state)
@@ -148,7 +148,7 @@ func UpTo(x int, psc Parsec) Parsec {
 			re = append(re, item)
 		}
 		return re, nil
-	}}
+	}
 }
 
 // AtMost 函数匹配至多 x 次 psc ，如果后续的数据仍然匹配成功，返回错误信息
@@ -175,7 +175,7 @@ func AtLeast(x int, psc Parsec) Parsec {
 
 // Times 函数生成一个 parsec 算子，它匹配指定算子x次。我们在这里用它构造一个不严谨的ip判定
 func Times(x int, psc Parsec) Parsec {
-	return Parsec{func(state State) (interface{}, error) {
+	return func(state State) (interface{}, error) {
 		var re = make([]interface{}, 0, x)
 		for i := 0; i < x; i++ {
 			item, err := psc.Parse(state)
@@ -185,5 +185,5 @@ func Times(x int, psc Parsec) Parsec {
 			re = append(re, item)
 		}
 		return re, nil
-	}}
+	}
 }
