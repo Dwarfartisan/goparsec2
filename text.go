@@ -153,20 +153,20 @@ func Int(state State) (interface{}, error) {
 }
 
 // UFloat 返回一个无符号实数的解析算子
-func UFloat() Parsec {
+func UFloat(state State) (interface{}, error) {
 	return Do(func(state State) interface{} {
 		left := Choice(Try(M(UInt).Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
 		right := M(UInt).Exec(state)
 		return fmt.Sprintf("%s.%s", left, right)
-	})
+	})(state)
 }
 
 // Float 返回一个有符号实数的解析算子
-func Float() Parsec {
+func Float(state State) (interface{}, error) {
 	binder := func(value interface{}) Parsec {
 		return Return("-" + value.(string))
 	}
-	return Choice(Try(Chr('-').Then(UFloat()).Bind(binder)), UFloat())
+	return Choice(Try(Chr('-').Then(UFloat).Bind(binder)), UFloat)(state)
 }
 
 // ToString 将封装为 interface{} 的 []interface{} 转成 string，如果输入数据与前面提到的规范不符，会 panic
