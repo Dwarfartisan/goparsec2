@@ -92,3 +92,8 @@ func Do(fn func(State) interface{}) Parsec {
 		return
 	}
 }
+
+// M 工具函数实现将函数明确转型为 Parsec 算子的逻辑
+func M(fn func(State) (interface{}, error)) Parsec {
+	return fn
+}

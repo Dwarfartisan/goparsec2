@@ -3,10 +3,8 @@ package goparsec2
 import "reflect"
 
 // One 仅仅简单的返回下一个迭代结果，或者得到 eof 错误
-func One() Parsec {
-	return func(state State) (interface{}, error) {
-		return state.Next()
-	}
+func One(state State) (interface{}, error) {
+	return state.Next()
 }
 
 // Eq 判断下一个数据是否与给定值相等，这里简单的使用了反射
@@ -52,14 +50,12 @@ func Fail(message string, args ...interface{}) Parsec {
 }
 
 // EOF 仅仅到达结尾时匹配成功
-func EOF() Parsec {
-	return func(state State) (interface{}, error) {
-		data, err := state.Next()
-		if err == nil {
-			return nil, state.Trap("Expect eof but %v", data)
-		}
-		return nil, nil
+func EOF(state State) (interface{}, error) {
+	data, err := state.Next()
+	if err == nil {
+		return nil, state.Trap("Expect eof but %v", data)
 	}
+	return nil, nil
 }
 
 // OneOf 期待下一个元素属于给定的参数中的一个
