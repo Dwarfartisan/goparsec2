@@ -112,35 +112,36 @@ func RuneParsec(name string, pred func(r rune) bool) Parsec {
 }
 
 // Space 构造一个空格校验算子
-func Space() Parsec {
-	return RuneParsec("space", unicode.IsSpace)
+func Space(state State) (interface{}, error) {
+	return RuneParsec("space", unicode.IsSpace)(state)
 }
 
 // Letter 构造一个字母校验算子
-func Letter() Parsec {
-	return RuneParsec("letter", unicode.IsLetter)
+func Letter(state State) (interface{}, error) {
+	return RuneParsec("letter", unicode.IsLetter)(state)
 }
 
 // Number 构造一个 Number 校验算子
-func Number() Parsec {
-	return RuneParsec("number", unicode.IsNumber)
+func Number(state State) (interface{}, error) {
+	return RuneParsec("number", unicode.IsNumber)(state)
 }
 
 // Digit 构造一个数字字符校验算子
-func Digit() Parsec {
-	return RuneParsec("digit", unicode.IsDigit)
+func Digit(state State) (interface{}, error) {
+	return RuneParsec("digit", unicode.IsDigit)(state)
 }
 
 // UInt 返回一个无符号整型的解析算子
-func UInt() Parsec {
-	return Many1(Digit()).Bind(func(values interface{}) Parsec {
-		buffer := values.([]interface{})
+func UInt(state State) (interface{}, error) {
+	return Do(func(st State) interface{} {
+		digits := Many1(Digit).Exec(st)
+		buffer := digits.([]interface{})
 		data := make([]rune, 0, len(buffer))
 		for _, value := range buffer {
 			data = append(data, value.(rune))
 		}
-		return Return(string(data))
-	})
+		return string(data)
+	})(state)
 }
 
 // Int 返回一个有符号整型的解析算子
@@ -148,14 +149,14 @@ func Int() Parsec {
 	binder := func(value interface{}) Parsec {
 		return Return(fmt.Sprintf("-%v" + value.(string)))
 	}
-	return Choice(Try(Chr('-').Then(UInt()).Bind(binder)), Return("").Then(UInt()))
+	return Choice(Try(Chr('-').Then(UInt).Bind(binder)), UInt)
 }
 
 // UFloat 返回一个无符号实数的解析算子
 func UFloat() Parsec {
 	return Do(func(state State) interface{} {
-		left := Choice(Try(UInt().Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
-		right := UInt().Exec(state)
+		left := Choice(Try(M(UInt).Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
+		right := M(UInt).Exec(state)
 		return fmt.Sprintf("%s.%s", left, right)
 	})
 }

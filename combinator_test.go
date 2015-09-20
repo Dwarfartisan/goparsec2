@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-var iprPsc = Repeat(1, 3, Digit()).Bind(func(x interface{}) Parsec {
+var iprPsc = Repeat(1, 3, Digit).Bind(func(x interface{}) Parsec {
 	buffer := x.([]interface{})
 	data := make([]rune, 0, len(buffer))
 	for _, r := range buffer {
@@ -25,7 +25,7 @@ var ipPsc = iprPsc.Bind(func(first interface{}) Parsec {
 })
 var dnPsc = Many1(RuneParsec("word", func(x rune) bool { return !unicode.IsSpace(x) }))
 var hPsc = Choice(ipPsc, dnPsc)
-var ptPsc = UInt()
+var ptPsc = M(UInt)
 
 var listen = Try(ipPsc).Over(Chr(':')).Bind(func(ip interface{}) Parsec {
 	return ptPsc.Bind(func(port interface{}) Parsec {
