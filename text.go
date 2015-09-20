@@ -145,11 +145,11 @@ func UInt(state State) (interface{}, error) {
 }
 
 // Int 返回一个有符号整型的解析算子
-func Int() Parsec {
+func Int(state State) (interface{}, error) {
 	binder := func(value interface{}) Parsec {
 		return Return(fmt.Sprintf("-%v" + value.(string)))
 	}
-	return Choice(Try(Chr('-').Then(UInt).Bind(binder)), UInt)
+	return Choice(Try(Chr('-').Then(UInt).Bind(binder)), UInt)(state)
 }
 
 // UFloat 返回一个无符号实数的解析算子
