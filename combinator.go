@@ -187,3 +187,49 @@ func Times(x int, psc Parsec) Parsec {
 		return re, nil
 	}
 }
+
+// Union 逐个执行每个给定的算子，直到出错或者完整，将结果中非空值合成一个 []interface{} 返回
+func Union(parsers ...Parsec) Parsec {
+	return func(st State) (interface{}, error) {
+		var ret = make([]interface{}, 0, len(parsers))
+		for _, parser := range parsers {
+			val, err := parser(st)
+			if err == nil {
+				if val != nil {
+					ret = append(ret, val)
+				}
+			} else {
+				return nil, err
+			}
+		}
+		return ret, nil
+	}
+}
+
+// UnionAll 逐个执行每个给定的算子，直到出错或者完整，将结果合成一个 []interface{} 返回
+func UnionAll(parsers ...Parsec) Parsec {
+	return func(st State) (interface{}, error) {
+		var ret = make([]interface{}, 0, len(parsers))
+		for _, parser := range parsers {
+			val, err := parser(st)
+			if err == nil {
+				ret = append(ret, val)
+			} else {
+				return nil, err
+			}
+		}
+		return ret, nil
+	}
+}
+
+// Option 实现一个默认值封装，如果给定算子失败，返回默认值 x
+func Option(v interface{}, x Parsec) Parsec {
+	return func(st State) (interface{}, error) {
+		return Choice(x, Return(v))(st)
+	}
+}
+
+// Maybe 在算子失败时返回 nil
+func Maybe(p Parsec) Parsec {
+	return Option(Return(nil), p)
+}

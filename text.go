@@ -116,6 +116,11 @@ func Space(state State) (interface{}, error) {
 	return RuneParsec("space", unicode.IsSpace)(state)
 }
 
+// Newline 构造一个换行校验算子
+func Newline(state State) (interface{}, error) {
+	return Choice(Try(Chr('\r')), Chr('\n'))(state)
+}
+
 // Letter 构造一个字母校验算子
 func Letter(state State) (interface{}, error) {
 	return RuneParsec("letter", unicode.IsLetter)(state)
