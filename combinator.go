@@ -52,8 +52,8 @@ func Many1(psc Parsec) Parsec {
 }
 
 //Between 构造一个有边界算子的 Parsec
-func Between(b, psc, e Parsec) Parsec {
-	return b.Then(psc).Over(e)
+func Between(open, close, psc Parsec) Parsec {
+	return open.Then(psc).Over(close)
 }
 
 // SepBy1 返回匹配 1 到若干次的带分隔符的算子

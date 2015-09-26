@@ -118,7 +118,7 @@ func Space(state State) (interface{}, error) {
 
 // Newline 构造一个换行校验算子
 func Newline(state State) (interface{}, error) {
-	return Choice(Try(Chr('\r')), Chr('\n'))(state)
+	return RuneOf("\r\n")(state)
 }
 
 // Letter 构造一个字母校验算子
@@ -183,6 +183,16 @@ func ToString(input interface{}) string {
 		buffer[index] = item.(rune)
 	}
 	return string(buffer)
+}
+
+// ToInterfaces 将string 转为 []interface{} ，如果输入数据与前面提到的规范不符，会 panic
+func ToInterfaces(input string) []interface{} {
+	buf := []rune(input)
+	re := make([]interface{}, 0, len(buf))
+	for r := range buf {
+		re = append(re, r)
+	}
+	return re
 }
 
 // ReturnString 用 Return 包装 ToString，使其适用于组合子表达式。

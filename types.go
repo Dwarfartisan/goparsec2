@@ -3,7 +3,7 @@ package goparsec2
 // Nil 判断当前元素是否为 nil
 func Nil(state State) (interface{}, error) {
 	data, err := state.Next()
-	if err == nil {
+	if err != nil {
 		return nil, state.Trap("Expect nil but error %v", err)
 	}
 	if data == nil {
@@ -12,10 +12,22 @@ func Nil(state State) (interface{}, error) {
 	return nil, state.Trap("Expect nil but %v", data)
 }
 
+// AsRune 判断当前元素是否为一个 rune
+func AsRune(state State) (interface{}, error) {
+	data, err := state.Next()
+	if err != nil {
+		return nil, state.Trap("Expect a rune value but error %v", err)
+	}
+	if _, ok := data.(rune); ok {
+		return data, nil
+	}
+	return nil, state.Trap("Expect a rune value but %v", data)
+}
+
 // AsInt 判断当前元素是否为一个 int
 func AsInt(state State) (interface{}, error) {
 	data, err := state.Next()
-	if err == nil {
+	if err != nil {
 		return nil, state.Trap("Expect a int value but error %v", err)
 	}
 	if _, ok := data.(int); ok {
@@ -27,7 +39,7 @@ func AsInt(state State) (interface{}, error) {
 // AsFloat64 判断当前元素是否为 float64
 func AsFloat64(state State) (interface{}, error) {
 	data, err := state.Next()
-	if err == nil {
+	if err != nil {
 		return nil, state.Trap("Expect a float64 value but error %v", err)
 	}
 	if _, ok := data.(float64); ok {
