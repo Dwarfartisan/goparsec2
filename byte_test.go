@@ -27,8 +27,8 @@ func TestContent(t *testing.T) {
 	}
 }
 
-var str = Choice(Between(Byte('"'), content(), Byte('"')),
-	Between(Byte('\''), content(), Byte('\'')))
+var str = Choice(Between(Byte('"'), Byte('"'), content()),
+	Between(Byte('\''), Byte('\''), content()))
 
 func TestStr0(t *testing.T) {
 	state := testState("\"content\"")
@@ -164,10 +164,10 @@ func TestDictBody(t *testing.T) {
 	}
 }
 func array(state State) (interface{}, error) {
-	return Between(Byte('[').Then(spaces), arrayBody, spaces.Then(Byte(']')))(state)
+	return Between(Byte('[').Then(spaces), spaces.Then(Byte(']')), arrayBody)(state)
 }
 func dict(state State) (interface{}, error) {
-	return Between(Byte('{').Then(spaces), dictBody(), spaces.Then(Byte('}')))(state)
+	return Between(Byte('{').Then(spaces), spaces.Then(Byte('}')), dictBody())(state)
 }
 func TestDict0(t *testing.T) {
 	data := map[string]interface{}{
