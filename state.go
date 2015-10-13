@@ -1,4 +1,4 @@
-package goparsec2
+package goP2
 
 import "fmt"
 

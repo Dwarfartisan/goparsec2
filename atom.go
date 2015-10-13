@@ -1,4 +1,4 @@
-package goparsec2
+package goP2
 
 import "reflect"
 
@@ -8,7 +8,7 @@ func One(state State) (interface{}, error) {
 }
 
 // Eq 判断下一个数据是否与给定值相等，这里简单的使用了反射
-func Eq(val interface{}) Parsec {
+func Eq(val interface{}) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -22,7 +22,7 @@ func Eq(val interface{}) Parsec {
 }
 
 // Ne 判断下一个数据是否与给定值不相等，这里简单的使用了反射
-func Ne(val interface{}) Parsec {
+func Ne(val interface{}) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -36,14 +36,14 @@ func Ne(val interface{}) Parsec {
 }
 
 // Return 生成的算子总是返回给定值
-func Return(val interface{}) Parsec {
+func Return(val interface{}) P {
 	return func(state State) (interface{}, error) {
 		return val, nil
 	}
 }
 
 // Fail 生成的算子总是返回给定错误
-func Fail(message string, args ...interface{}) Parsec {
+func Fail(message string, args ...interface{}) P {
 	return func(state State) (interface{}, error) {
 		return nil, state.Trap(message, args...)
 	}
@@ -59,7 +59,7 @@ func EOF(state State) (interface{}, error) {
 }
 
 // OneOf 期待下一个元素属于给定的参数中的一个
-func OneOf(args ...interface{}) Parsec {
+func OneOf(args ...interface{}) P {
 	return func(state State) (interface{}, error) {
 		data, err := state.Next()
 		if err != nil {
@@ -75,7 +75,7 @@ func OneOf(args ...interface{}) Parsec {
 }
 
 // NoneOf 期待下一个元素不属于给定的参数中的任一个
-func NoneOf(args ...interface{}) Parsec {
+func NoneOf(args ...interface{}) P {
 	return func(state State) (interface{}, error) {
 		data, err := state.Next()
 		if err != nil {

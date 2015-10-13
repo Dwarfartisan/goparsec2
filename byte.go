@@ -1,7 +1,7 @@
-package goparsec2
+package goP2
 
 // Byte 判断下一个字节是否与给定值相等
-func Byte(val byte) Parsec {
+func Byte(val byte) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -18,7 +18,7 @@ func Byte(val byte) Parsec {
 }
 
 // NByte 判断下一个字符是否与给定值不相等
-func NByte(val byte) Parsec {
+func NByte(val byte) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -35,7 +35,7 @@ func NByte(val byte) Parsec {
 }
 
 // ByteOf 检查后续的字符是否是给定值中的某一个
-func ByteOf(str string) Parsec {
+func ByteOf(str string) P {
 	data := []byte(str)
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
@@ -55,7 +55,7 @@ func ByteOf(str string) Parsec {
 }
 
 // ByteNone 检查后续的字符是否不是给定值中的任一个
-func ByteNone(str string) Parsec {
+func ByteNone(str string) P {
 	data := []byte(str)
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
@@ -75,7 +75,7 @@ func ByteNone(str string) Parsec {
 }
 
 // Bytes 判断后续的字节串是否匹配给定的串
-func Bytes(str string) Parsec {
+func Bytes(str string) P {
 	data := []byte(str)
 	return func(state State) (interface{}, error) {
 		for _, r := range data {
@@ -88,8 +88,8 @@ func Bytes(str string) Parsec {
 	}
 }
 
-// ByteParsec 通过一个谓词参数，提供通用的 rune 算子生成判断
-func ByteParsec(name string, pred func(r byte) bool) Parsec {
+// ByteP 通过一个谓词参数，提供通用的 rune 算子生成判断
+func ByteP(name string, pred func(r byte) bool) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {

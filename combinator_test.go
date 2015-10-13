@@ -1,4 +1,4 @@
-package goparsec2
+package goP2
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-var iprPsc = Repeat(1, 3, Digit).Bind(func(x interface{}) Parsec {
+var iprPsc = Repeat(1, 3, Digit).Bind(func(x interface{}) P {
 	buffer := x.([]interface{})
 	data := make([]rune, 0, len(buffer))
 	for _, r := range buffer {
@@ -14,8 +14,8 @@ var iprPsc = Repeat(1, 3, Digit).Bind(func(x interface{}) Parsec {
 	}
 	return Return(string(data))
 })
-var ipPsc = iprPsc.Bind(func(first interface{}) Parsec {
-	return Times(3, Chr('.').Then(iprPsc)).Bind(func(postfix interface{}) Parsec {
+var ipPsc = iprPsc.Bind(func(first interface{}) P {
+	return Times(3, Chr('.').Then(iprPsc)).Bind(func(postfix interface{}) P {
 		buffer := make([]interface{}, 1, 4)
 		buffer[0] = first
 		buffer = append(buffer, postfix.([]interface{})...)
@@ -23,12 +23,12 @@ var ipPsc = iprPsc.Bind(func(first interface{}) Parsec {
 		return Return(data)
 	})
 })
-var dnPsc = Many1(RuneParsec("word", func(x rune) bool { return !unicode.IsSpace(x) }))
+var dnPsc = Many1(RuneP("word", func(x rune) bool { return !unicode.IsSpace(x) }))
 var hPsc = Choice(ipPsc, dnPsc)
-var ptPsc = M(UInt)
+var ptPsc = P(UInt)
 
-var listen = Try(ipPsc).Over(Chr(':')).Bind(func(ip interface{}) Parsec {
-	return ptPsc.Bind(func(port interface{}) Parsec {
+var listen = Try(ipPsc).Over(Chr(':')).Bind(func(ip interface{}) P {
+	return ptPsc.Bind(func(port interface{}) P {
 		return Return([]string{ip.(string), port.(string)})
 	})
 })

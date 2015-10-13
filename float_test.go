@@ -1,11 +1,11 @@
-package goparsec2
+package goP2
 
 import "testing"
 
 func TestFloat0(t *testing.T) {
 	data := "3.14"
 	state := BasicStateFromText(data)
-	re, err := M(UFloat).Parse(&state)
+	re, err := P(UFloat).Parse(&state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +20,7 @@ func TestFloat0(t *testing.T) {
 func TestFloat1(t *testing.T) {
 	data := "3.14f"
 	state := BasicStateFromText(data)
-	re, err := M(Float).Parse(&state)
+	re, err := P(Float).Parse(&state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestFloat1(t *testing.T) {
 func TestFloat2(t *testing.T) {
 	data := "e.14"
 	state := BasicStateFromText(data)
-	re, err := M(Float).Parse(&state)
+	re, err := P(Float).Parse(&state)
 	if err == nil {
 		t.Fatalf("expect a error when data e.14 but got %v.", re)
 	}

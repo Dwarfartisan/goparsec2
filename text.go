@@ -1,4 +1,4 @@
-package goparsec2
+package goP2
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 )
 
 // Chr 判断下一个字符是否与给定值相等
-func Chr(val rune) Parsec {
+func Chr(val rune) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -23,7 +23,7 @@ func Chr(val rune) Parsec {
 }
 
 // NChr 判断下一个字符是否与给定值不相等
-func NChr(val rune) Parsec {
+func NChr(val rune) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -40,7 +40,7 @@ func NChr(val rune) Parsec {
 }
 
 // RuneOf 检查后续的字符是否是给定值中的某一个
-func RuneOf(str string) Parsec {
+func RuneOf(str string) P {
 	data := []rune(str)
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
@@ -60,7 +60,7 @@ func RuneOf(str string) Parsec {
 }
 
 // RuneNone 检查后续的字符是否不是给定值中的任一个
-func RuneNone(str string) Parsec {
+func RuneNone(str string) P {
 	data := []rune(str)
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
@@ -80,7 +80,7 @@ func RuneNone(str string) Parsec {
 }
 
 // Str 判断后续的字符串是否匹配给定的串
-func Str(str string) Parsec {
+func Str(str string) P {
 	data := []rune(str)
 	return func(state State) (interface{}, error) {
 		for _, r := range data {
@@ -93,8 +93,8 @@ func Str(str string) Parsec {
 	}
 }
 
-// RuneParsec 通过一个谓词参数，提供通用的 rune 算子生成判断
-func RuneParsec(name string, pred func(r rune) bool) Parsec {
+// RuneP 通过一个谓词参数，提供通用的 rune 算子生成判断
+func RuneP(name string, pred func(r rune) bool) P {
 	return func(state State) (interface{}, error) {
 		x, err := state.Next()
 		if err != nil {
@@ -113,7 +113,7 @@ func RuneParsec(name string, pred func(r rune) bool) Parsec {
 
 // Space 构造一个空格校验算子
 func Space(state State) (interface{}, error) {
-	return RuneParsec("space", unicode.IsSpace)(state)
+	return RuneP("space", unicode.IsSpace)(state)
 }
 
 // Newline 构造一个换行校验算子
@@ -123,17 +123,17 @@ func Newline(state State) (interface{}, error) {
 
 // Letter 构造一个字母校验算子
 func Letter(state State) (interface{}, error) {
-	return RuneParsec("letter", unicode.IsLetter)(state)
+	return RuneP("letter", unicode.IsLetter)(state)
 }
 
 // Number 构造一个 Number 校验算子
 func Number(state State) (interface{}, error) {
-	return RuneParsec("number", unicode.IsNumber)(state)
+	return RuneP("number", unicode.IsNumber)(state)
 }
 
 // Digit 构造一个数字字符校验算子
 func Digit(state State) (interface{}, error) {
-	return RuneParsec("digit", unicode.IsDigit)(state)
+	return RuneP("digit", unicode.IsDigit)(state)
 }
 
 // UInt 返回一个无符号整型的解析算子
@@ -151,7 +151,7 @@ func UInt(state State) (interface{}, error) {
 
 // Int 返回一个有符号整型的解析算子
 func Int(state State) (interface{}, error) {
-	binder := func(value interface{}) Parsec {
+	binder := func(value interface{}) P {
 		return Return(fmt.Sprintf("-%v" + value.(string)))
 	}
 	return Choice(Try(Chr('-').Then(UInt).Bind(binder)), UInt)(state)
@@ -160,15 +160,15 @@ func Int(state State) (interface{}, error) {
 // UFloat 返回一个无符号实数的解析算子
 func UFloat(state State) (interface{}, error) {
 	return Do(func(state State) interface{} {
-		left := Choice(Try(M(UInt).Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
-		right := M(UInt).Exec(state)
+		left := Choice(Try(P(UInt).Over(Chr('.'))), Chr('.').Then(Return("0"))).Exec(state)
+		right := P(UInt).Exec(state)
 		return fmt.Sprintf("%s.%s", left, right)
 	})(state)
 }
 
 // Float 返回一个有符号实数的解析算子
 func Float(state State) (interface{}, error) {
-	binder := func(value interface{}) Parsec {
+	binder := func(value interface{}) P {
 		return Return("-" + value.(string))
 	}
 	return Choice(Try(Chr('-').Then(UFloat).Bind(binder)), UFloat)(state)
@@ -196,6 +196,6 @@ func ToInterfaces(input string) []interface{} {
 }
 
 // ReturnString 用 Return 包装 ToString，使其适用于组合子表达式。
-func ReturnString(input interface{}) Parsec {
+func ReturnString(input interface{}) P {
 	return Return(ToString(input))
 }

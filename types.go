@@ -1,4 +1,4 @@
-package goparsec2
+package goP2
 
 // Nil 判断当前元素是否为 nil
 func Nil(state State) (interface{}, error) {

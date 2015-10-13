@@ -1,4 +1,4 @@
-package goparsec2
+package goP2
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ func testState(data string) State {
 	return &state
 }
 
-func content() Parsec {
+func content() P {
 	return Skip(Choice(Try(ByteNone("\\\"")), Try(Byte('\\').Then(One))))
 }
 
@@ -77,13 +77,13 @@ func node(state State) (interface{}, error) {
 	if err == nil {
 		return re, nil
 	}
-	var jparsec = j
-	return Try(jparsec)(state)
+	var jP = j
+	return Try(jP)(state)
 }
 
 func TestNode0(t *testing.T) {
 	state := testState("\"It is a node .\"")
-	_, err := M(node).Then(EOF)(state)
+	_, err := P(node).Then(EOF)(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestNode0(t *testing.T) {
 
 func TestNode1(t *testing.T) {
 	state := testState("12343")
-	_, err := M(node).Then(EOF)(state)
+	_, err := P(node).Then(EOF)(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,14 +99,14 @@ func TestNode1(t *testing.T) {
 
 func TestNode2(t *testing.T) {
 	state := testState("1234.3")
-	_, err := M(node).Then(EOF)(state)
+	_, err := P(node).Then(EOF)(state)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func arrayBody(state State) (interface{}, error) {
-	return SepBy(M(node), skipComma)(state)
+	return SepBy(P(node), skipComma)(state)
 }
 
 func TestArrayBody0(t *testing.T) {
@@ -119,7 +119,7 @@ func TestArrayBody0(t *testing.T) {
 
 func TestArrayBody1(t *testing.T) {
 	state := testState("\"It\", \"is\", \"a\", \"content\"")
-	_, err := M(arrayBody).Then(EOF)(state)
+	_, err := P(arrayBody).Then(EOF)(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestArrayBody1(t *testing.T) {
 
 func TestArrayBody2(t *testing.T) {
 	state := testState("1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89")
-	_, err := M(arrayBody).Then(EOF).Parse(state)
+	_, err := P(arrayBody).Then(EOF).Parse(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,13 +135,13 @@ func TestArrayBody2(t *testing.T) {
 
 func TestArrayBody3(t *testing.T) {
 	state := testState("1,1,2,3,5,8,13,21,34,55,89")
-	_, err := M(arrayBody).Then(EOF).Parse(state)
+	_, err := P(arrayBody).Then(EOF).Parse(state)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func pair() Parsec {
+func pair() P {
 	return str.Then(skipColon).Then(node)
 }
 func TestPair(t *testing.T) {
@@ -152,7 +152,7 @@ func TestPair(t *testing.T) {
 	}
 }
 
-func dictBody() Parsec {
+func dictBody() P {
 	return SepBy(pair(), skipComma)
 }
 
@@ -200,7 +200,7 @@ func TestJsonTrue0(t *testing.T) {
 		t.Fatal(err)
 	}
 	state := testState(string(buffer))
-	_, err = M(j).Then(EOF)(state)
+	_, err = P(j).Then(EOF)(state)
 	if err != nil {
 		t.Fatal(err)
 	}
