@@ -4,13 +4,13 @@ package goP2
 type P func(state State) (interface{}, error)
 
 //Parse 简单的调用被封装的算子逻辑
-func (P P) Parse(state State) (interface{}, error) {
-	return P(state)
+func (p P) Parse(state State) (interface{}, error) {
+	return p(state)
 }
 
 //Exec 调用被封装的算子，如果返回错误，用panic抛出
-func (P P) Exec(state State) interface{} {
-	re, err := P(state)
+func (p P) Exec(state State) interface{} {
+	re, err := p(state)
 	if err != nil {
 		panic(err)
 	}
@@ -18,9 +18,9 @@ func (P P) Exec(state State) interface{} {
 }
 
 // Bind 方法实现 Monad >>= 运算
-func (P P) Bind(binder func(interface{}) P) P {
+func (p P) Bind(binder func(interface{}) P) P {
 	return func(state State) (interface{}, error) {
-		x, err := P(state)
+		x, err := p(state)
 		if err != nil {
 			return nil, err
 		}
@@ -30,9 +30,9 @@ func (P P) Bind(binder func(interface{}) P) P {
 }
 
 // Then 方法实现 Monad 的 >> 运算
-func (P P) Then(psc P) P {
+func (p P) Then(psc P) P {
 	return func(state State) (interface{}, error) {
-		_, err := P(state)
+		_, err := p(state)
 		if err != nil {
 			return nil, err
 		}
@@ -41,9 +41,9 @@ func (P P) Then(psc P) P {
 }
 
 // Over 方法实现一个简化的 bind 逻辑，如果两个算子都成功，返回前一个算子的结果，否则返回第一个发生的错误
-func (P P) Over(psc P) P {
+func (p P) Over(psc P) P {
 	return func(state State) (interface{}, error) {
-		re, err := P(state)
+		re, err := p(state)
 		if err != nil {
 			return nil, err
 		}
