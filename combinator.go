@@ -55,13 +55,31 @@ func Many(psc P) P {
 
 // Many1 匹配 1 到若干次 psc 并返回结果序列
 func Many1(psc P) P {
-	tail := func(value interface{}) P {
-		head := Many(Try(psc))
-		return head.Bind(func(values interface{}) P {
-			return Return(append([]interface{}{value}, values.([]interface{})...))
-		})
+	// tail := func(value interface{}) P {
+	// 	head := Many(Try(psc))
+	// 	return head.Bind(func(values interface{}) P {
+	// 		return Return(append([]interface{}{value}, values.([]interface{})...))
+	// 	})
+	// }
+	// return psc.Bind(tail)
+	//return Choice(Try(Many1(psc)), Return([]interface{}{}))
+	return func(state State) (interface{}, error) {
+		r, err := psc(state)
+		if err != nil {
+			return nil, err
+		}
+		re := []interface{}{r}
+		p := Try(psc)
+		for {
+			r, err = p.Parse(state)
+			if err == nil {
+				re = append(re, r)
+			} else {
+				break
+			}
+		}
+		return re, nil
 	}
-	return psc.Bind(tail)
 }
 
 //Between 构造一个有边界算子的 P
