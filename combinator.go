@@ -37,7 +37,20 @@ func Choice(Ps ...P) P {
 
 // Many 匹配 0 到若干次 psc 并返回结果序列
 func Many(psc P) P {
-	return Choice(Try(Many1(psc)), Return([]interface{}{}))
+	//return Choice(Try(Many1(psc)), Return([]interface{}{}))
+	return func(state State) (interface{}, error) {
+		re := []interface{}{}
+		p := Try(psc)
+		for {
+			r, err := p.Parse(state)
+			if err == nil {
+				re = append(re, r)
+			} else {
+				break
+			}
+		}
+		return re, nil
+	}
 }
 
 // Many1 匹配 1 到若干次 psc 并返回结果序列
