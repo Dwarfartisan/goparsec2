@@ -152,7 +152,7 @@ func UInt(state State) (interface{}, error) {
 // Int 返回一个有符号整型的解析算子
 func Int(state State) (interface{}, error) {
 	binder := func(value interface{}) P {
-		return Return(fmt.Sprintf("-%v" + value.(string)))
+		return Return(fmt.Sprintf("-%s", value.(string)))
 	}
 	return Choice(Try(Chr('-').Then(UInt).Bind(binder)), UInt)(state)
 }

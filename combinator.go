@@ -62,7 +62,6 @@ func Many1(psc P) P {
 	// 	})
 	// }
 	// return psc.Bind(tail)
-	//return Choice(Try(Many1(psc)), Return([]interface{}{}))
 	return func(state State) (interface{}, error) {
 		r, err := psc(state)
 		if err != nil {
@@ -84,7 +83,13 @@ func Many1(psc P) P {
 
 //Between 构造一个有边界算子的 P
 func Between(open, close, psc P) P {
-	return open.Then(psc).Over(close)
+	// return open.Then(psc).Over(close)
+	return Do(func(state State) interface{} {
+		open.Exec(state)
+		re := psc.Exec(state)
+		close.Exec(state)
+		return re
+	})
 }
 
 // SepBy1 返回匹配 1 到若干次的带分隔符的算子
