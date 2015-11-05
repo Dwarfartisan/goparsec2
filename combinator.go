@@ -5,12 +5,13 @@ import "fmt"
 // Try 尝试运行给定算子，如果给定算子报错，将state复位再返回错误信息
 func Try(psc P) P {
 	return func(state State) (interface{}, error) {
-		idx := state.Pos()
+		tran := state.Begin()
 		re, err := psc.Parse(state)
 		if err == nil {
+			state.Commit(tran)
 			return re, nil
 		}
-		state.SeekTo(idx)
+		state.Rollback(tran)
 		return nil, err
 	}
 }

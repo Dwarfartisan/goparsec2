@@ -5,15 +5,19 @@ import "fmt"
 // State 是基本的状态操作接口
 type State interface {
 	Pos() int
-	SeekTo(idx int) bool
+	Begin() int
+	Commit(int)
+	Rollback(int)
 	Next() (interface{}, error)
 	Trap(message string, args ...interface{}) error
 }
 
 // BasicState 实现最基本的 State 操作
 type BasicState struct {
-	buffer []interface{}
-	index  int
+	buffer   []interface{}
+	index    int
+	nextTran int
+	trans    map[int]int
 }
 
 // NewBasicState 构造一个新的 BasicState
@@ -23,6 +27,8 @@ func NewBasicState(data []interface{}) BasicState {
 	return BasicState{
 		buffer,
 		0,
+		0,
+		map[int]int{},
 	}
 }
 
@@ -36,6 +42,8 @@ func BasicStateFromText(str string) BasicState {
 	return BasicState{
 		buffer,
 		0,
+		0,
+		map[int]int{},
 	}
 }
 
@@ -44,13 +52,23 @@ func (state *BasicState) Pos() int {
 	return state.index
 }
 
-// SeekTo 实现指针移动，如果越界，会返回 false
-func (state *BasicState) SeekTo(idx int) bool {
-	if idx < 0 || idx > len(state.buffer) {
-		return false
-	}
-	state.index = idx
-	return true
+//Begin 注册并返回一个事务号
+func (state *BasicState) Begin() int {
+	state.trans[state.nextTran] = state.Pos()
+	var re = state.nextTran
+	state.nextTran++
+	return re
+}
+
+// Commit 表示事务成功，删除该事务号
+func (state *BasicState) Commit(num int) {
+	delete(state.trans, num)
+}
+
+// Rollback 表示事务失败，删除事务号，并将 state 的 pos 还原到该事务开始时的位置
+func (state *BasicState) Rollback(num int) {
+	state.index = state.trans[num]
+	delete(state.trans, num)
 }
 
 // Next 实现迭代逻辑
