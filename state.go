@@ -1,9 +1,6 @@
 package goP2
 
-import (
-	"fmt"
-	"math"
-)
+import "fmt"
 
 // State 是基本的状态操作接口
 type State interface {
@@ -30,7 +27,7 @@ func NewBasicState(data []interface{}) BasicState {
 	return BasicState{
 		buffer,
 		0,
-		0,
+		-1,
 	}
 }
 
@@ -44,7 +41,7 @@ func BasicStateFromText(str string) BasicState {
 	return BasicState{
 		buffer,
 		0,
-		0,
+		-1,
 	}
 }
 
@@ -82,17 +79,15 @@ func (state *BasicState) Begin() int {
 	if state.begin == -1 {
 		state.begin = state.Pos()
 	} else {
-		state.begin = int(math.Max(float64(state.begin), float64(state.Pos())))
+		state.begin = min(state.begin, state.Pos())
 	}
-	return state.begin
+	return state.Pos()
 }
 
 // Commit 提交一个事务，将其从注册状态中删除，将事务位置保存为比较靠前的位置
 func (state *BasicState) Commit(tran int) {
 	if state.begin == tran {
 		state.begin = -1
-	} else {
-		state.begin = int(math.Min(float64(state.begin), float64(tran)))
 	}
 }
 
@@ -101,8 +96,6 @@ func (state *BasicState) Rollback(tran int) {
 	state.SeekTo(tran)
 	if state.begin == tran {
 		state.begin = -1
-	} else {
-		state.begin = int(math.Min(float64(state.begin), float64(tran)))
 	}
 }
 
