@@ -1,23 +1,26 @@
 package goP2
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // State 是基本的状态操作接口
 type State interface {
 	Pos() int
+	SeekTo(int) bool
+	Next() (interface{}, error)
+	Trap(message string, args ...interface{}) error
 	Begin() int
 	Commit(int)
 	Rollback(int)
-	Next() (interface{}, error)
-	Trap(message string, args ...interface{}) error
 }
 
 // BasicState 实现最基本的 State 操作
 type BasicState struct {
-	buffer   []interface{}
-	index    int
-	nextTran int
-	trans    map[int]int
+	buffer []interface{}
+	index  int
+	begin  int
 }
 
 // NewBasicState 构造一个新的 BasicState
@@ -28,7 +31,6 @@ func NewBasicState(data []interface{}) BasicState {
 		buffer,
 		0,
 		0,
-		map[int]int{},
 	}
 }
 
@@ -43,7 +45,6 @@ func BasicStateFromText(str string) BasicState {
 		buffer,
 		0,
 		0,
-		map[int]int{},
 	}
 }
 
@@ -52,23 +53,13 @@ func (state *BasicState) Pos() int {
 	return state.index
 }
 
-//Begin 注册并返回一个事务号
-func (state *BasicState) Begin() int {
-	state.trans[state.nextTran] = state.Pos()
-	var re = state.nextTran
-	state.nextTran++
-	return re
-}
-
-// Commit 表示事务成功，删除该事务号
-func (state *BasicState) Commit(num int) {
-	delete(state.trans, num)
-}
-
-// Rollback 表示事务失败，删除事务号，并将 state 的 pos 还原到该事务开始时的位置
-func (state *BasicState) Rollback(num int) {
-	state.index = state.trans[num]
-	delete(state.trans, num)
+//SeekTo 将指针移动到指定位置
+func (state *BasicState) SeekTo(pos int) bool {
+	if 0 <= pos && pos < len(state.buffer) {
+		state.index = pos
+		return true
+	}
+	return false
 }
 
 // Next 实现迭代逻辑
@@ -86,6 +77,35 @@ func (state *BasicState) Trap(message string, args ...interface{}) error {
 	return Error{state.index, fmt.Sprintf(message, args...)}
 }
 
+// Begin 开始一个事务并返回事务号，State 的 Begin 总是记录比较靠后的位置。
+func (state *BasicState) Begin() int {
+	if state.begin == -1 {
+		state.begin = state.Pos()
+	} else {
+		state.begin = int(math.Max(float64(state.begin), float64(state.Pos())))
+	}
+	return state.begin
+}
+
+// Commit 提交一个事务，将其从注册状态中删除，将事务位置保存为比较靠前的位置
+func (state *BasicState) Commit(tran int) {
+	if state.begin == tran {
+		state.begin = -1
+	} else {
+		state.begin = int(math.Min(float64(state.begin), float64(tran)))
+	}
+}
+
+// Rollback 取消一个事务，将 pos 移动到 该位置，将事务位置保存为比较靠前的位置
+func (state *BasicState) Rollback(tran int) {
+	state.SeekTo(tran)
+	if state.begin == tran {
+		state.begin = -1
+	} else {
+		state.begin = int(math.Min(float64(state.begin), float64(tran)))
+	}
+}
+
 // Error 实现基本的错误信息结构
 type Error struct {
 	Pos     int
@@ -94,4 +114,18 @@ type Error struct {
 
 func (e Error) Error() string {
 	return fmt.Sprintf("stop at %d : %v", e.Pos, e.Message)
+}
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func max(x, y int) int {
+	if x < y {
+		return y
+	}
+	return x
 }
