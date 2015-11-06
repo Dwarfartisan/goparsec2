@@ -5,13 +5,29 @@ import "fmt"
 // Try 尝试运行给定算子，如果给定算子报错，将state复位再返回错误信息
 func Try(psc P) P {
 	return func(state State) (interface{}, error) {
-		tran := state.Begin()
+		pos := state.Pos()
 		re, err := psc.Parse(state)
 		if err == nil {
-			state.Commit(tran)
 			return re, nil
 		}
-		state.Rollback(tran)
+		state.SeekTo(pos)
+		return nil, err
+	}
+}
+
+// Tran 尝试运行给定算子，如果给定算子报错，将state复位再返回错误信息，在事务环境下代替 try。
+// 当我们需要将一个普通的 Try 或带有 Try 的操作用于事务 state，可以将其封装到这个 Tran 中。
+// 它保证事务起止状态
+func Tran(psc P) P {
+	return func(state State) (interface{}, error) {
+		st := state.(TranState)
+		tran := st.Begin()
+		re, err := psc.Parse(state)
+		if err == nil {
+
+			return re, nil
+		}
+		state.SeekTo(tran)
 		return nil, err
 	}
 }
