@@ -115,32 +115,32 @@ func TStateFromState(state State) *TState {
 	}
 }
 
-// Begin 开始一个事务并返回事务号
+// Begin 开始一个事务并返回事务号，State 的 Begin 总是记录比较靠后的位置。
 func (state *TState) Begin() int {
 	if state.begin == -1 {
 		state.begin = state.Pos()
 	} else {
-		state.begin = int(math.Min(float64(state.begin), float64(state.Pos())))
+		state.begin = int(math.Max(float64(state.begin), float64(state.Pos())))
 	}
 	return state.begin
 }
 
-// Commit 提交一个事务，将其从注册状态中删除
+// Commit 提交一个事务，将其从注册状态中删除，将事务位置保存为比较靠前的位置
 func (state *TState) Commit(tran int) {
 	if state.begin == tran {
 		state.begin = -1
 	} else {
-		state.begin = int(math.Min(float64(state.begin), float64(state.Pos())))
+		state.begin = int(math.Min(float64(state.begin), float64(tran)))
 	}
 }
 
-// Rollback 取消一个事务，将 pos 移动到 该位置。
+// Rollback 取消一个事务，将 pos 移动到 该位置，将事务位置保存为比较靠前的位置
 func (state *TState) Rollback(tran int) {
 	state.SeekTo(tran)
 	if state.begin == tran {
 		state.begin = -1
 	} else {
-		state.begin = int(math.Min(float64(state.begin), float64(state.Pos())))
+		state.begin = int(math.Min(float64(state.begin), float64(tran)))
 	}
 }
 
