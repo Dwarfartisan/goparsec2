@@ -11,11 +11,6 @@ type State interface {
 	SeekTo(int) bool
 	Next() (interface{}, error)
 	Trap(message string, args ...interface{}) error
-}
-
-// TranState 表示支持事务的 State 约定
-type TranState interface {
-	State
 	Begin() int
 	Commit(int)
 	Rollback(int)
@@ -25,6 +20,7 @@ type TranState interface {
 type BasicState struct {
 	buffer []interface{}
 	index  int
+	begin  int
 }
 
 // NewBasicState 构造一个新的 BasicState
@@ -33,6 +29,7 @@ func NewBasicState(data []interface{}) BasicState {
 	copy(buffer, data)
 	return BasicState{
 		buffer,
+		0,
 		0,
 	}
 }
@@ -46,6 +43,7 @@ func BasicStateFromText(str string) BasicState {
 	}
 	return BasicState{
 		buffer,
+		0,
 		0,
 	}
 }
@@ -79,44 +77,8 @@ func (state *BasicState) Trap(message string, args ...interface{}) error {
 	return Error{state.index, fmt.Sprintf(message, args...)}
 }
 
-// TState 支持事务
-type TState struct {
-	State
-	nextTran int
-	begin    int // begin 总是保存最小的事务位置，如果当前没有事务，值为 －1
-}
-
-// NewTState 构造一个新的 TState
-func NewTState(data []interface{}) *TState {
-	state := NewBasicState(data)
-	return &TState{
-		&state,
-		0,
-		-1,
-	}
-}
-
-// TStateFromText 构造一个新的 BasicState
-func TStateFromText(str string) *TState {
-	state := BasicStateFromText(str)
-	return &TState{
-		&state,
-		0,
-		-1,
-	}
-}
-
-// TStateFromState 将一个无事务的 State 封装为有事务的
-func TStateFromState(state State) *TState {
-	return &TState{
-		state,
-		0,
-		-1,
-	}
-}
-
 // Begin 开始一个事务并返回事务号，State 的 Begin 总是记录比较靠后的位置。
-func (state *TState) Begin() int {
+func (state *BasicState) Begin() int {
 	if state.begin == -1 {
 		state.begin = state.Pos()
 	} else {
@@ -126,7 +88,7 @@ func (state *TState) Begin() int {
 }
 
 // Commit 提交一个事务，将其从注册状态中删除，将事务位置保存为比较靠前的位置
-func (state *TState) Commit(tran int) {
+func (state *BasicState) Commit(tran int) {
 	if state.begin == tran {
 		state.begin = -1
 	} else {
@@ -135,7 +97,7 @@ func (state *TState) Commit(tran int) {
 }
 
 // Rollback 取消一个事务，将 pos 移动到 该位置，将事务位置保存为比较靠前的位置
-func (state *TState) Rollback(tran int) {
+func (state *BasicState) Rollback(tran int) {
 	state.SeekTo(tran)
 	if state.begin == tran {
 		state.begin = -1
@@ -152,4 +114,18 @@ type Error struct {
 
 func (e Error) Error() string {
 	return fmt.Sprintf("stop at %d : %v", e.Pos, e.Message)
+}
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func max(x, y int) int {
+	if x < y {
+		return y
+	}
+	return x
 }
