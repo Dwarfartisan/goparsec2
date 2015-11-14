@@ -78,8 +78,6 @@ func (state *BasicState) Trap(message string, args ...interface{}) error {
 func (state *BasicState) Begin() int {
 	if state.begin == -1 {
 		state.begin = state.Pos()
-	} else {
-		state.begin = min(state.begin, state.Pos())
 	}
 	return state.Pos()
 }
@@ -109,16 +107,16 @@ func (e Error) Error() string {
 	return fmt.Sprintf("stop at %d : %v", e.Pos, e.Message)
 }
 
-func min(x, y int) int {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-func max(x, y int) int {
-	if x < y {
-		return y
-	}
-	return x
-}
+// func min(x, y int) int {
+// 	if x < y {
+// 		return x
+// 	}
+// 	return y
+// }
+//
+// func max(x, y int) int {
+// 	if x < y {
+// 		return y
+// 	}
+// 	return x
+// }
