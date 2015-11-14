@@ -106,17 +106,3 @@ type Error struct {
 func (e Error) Error() string {
 	return fmt.Sprintf("stop at %d : %v", e.Pos, e.Message)
 }
-
-// func min(x, y int) int {
-// 	if x < y {
-// 		return x
-// 	}
-// 	return y
-// }
-//
-// func max(x, y int) int {
-// 	if x < y {
-// 		return y
-// 	}
-// 	return x
-// }
