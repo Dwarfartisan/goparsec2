@@ -1,5 +1,9 @@
 package goP2
 
+import (
+	"runtime"
+)
+
 // P 是算子的公共抽象类型，实现 Monad 和解析逻辑
 type P func(state State) (interface{}, error)
 
@@ -55,41 +59,33 @@ func (p P) Over(psc P) P {
 	}
 }
 
+func errRecover(errp *error) {
+	r := recover()
+	if r != nil {
+		switch err := r.(type) {
+		case runtime.Error:
+			panic(r)
+		case error:
+			*errp = err
+		default:
+			panic(r)
+		}
+	}
+}
+
 // Env 函数与 P 算子的 Exec 方法对应，将其抛出的 error 还原为无 panic 的流程，用于模拟
 // Haskell Monad Do 。需要注意的是，捕获的非 error 类型的panic会重新抛出。
 func Env(fn func() interface{}) (re interface{}, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			if e, ok := r.(error); ok {
-				err = e
-				re = nil
-			} else {
-				panic(r)
-			}
-		}
-	}()
-	re = fn()
-	err = nil
-	return
+	defer errRecover(&err)
+	return fn(), nil
 }
 
 // Do 构造一个算子，其内部类似 Monad Do Environment ，将 Exec 形式恢复成 Parse 形式。
 // 需要注意的是，捕获的非 error 类型的panic会重新抛出。
 func Do(fn func(State) interface{}) P {
 	return func(state State) (re interface{}, err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				if e, ok := r.(error); ok {
-					err = e
-					re = nil
-				} else {
-					panic(r)
-				}
-			}
-		}()
-		re = fn(state)
-		err = nil
-		return
+		defer errRecover(&err)
+		return fn(state), nil
 	}
 }
 
