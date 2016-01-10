@@ -116,9 +116,34 @@ func Space(state State) (interface{}, error) {
 	return RuneP("space", unicode.IsSpace)(state)
 }
 
-// Newline 构造一个换行校验算子
+// Whitespace 构造一个空白校验算子
+func Whitespace(state State) (interface{}, error) {
+	return RuneP("whitespace", func(r rune) bool {
+		return unicode.In(r, unicode.White_Space)
+	})(state)
+}
+
+// Newline 构造一个 newline 校验算子
 func Newline(state State) (interface{}, error) {
-	return RuneOf("\r\n")(state)
+	return RuneOf("\n")(state)
+}
+
+// Crlf 构造一个 \n\r 校验算子
+func Crlf(state State) (interface{}, error) {
+	return Str("\n\r")(state)
+}
+
+// EndOfLine 匹配 \n\r 或 \n 。
+func EndOfLine(state State) (interface{}, error) {
+	_, err := Chr('\n')(state)
+	if err != nil {
+		return nil, err
+	}
+	_, err = Chr('\r')(state)
+	if err != nil {
+		return "\n", err
+	}
+	return "\n\r", err
 }
 
 // Letter 构造一个字母校验算子
