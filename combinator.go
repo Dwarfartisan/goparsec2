@@ -109,14 +109,23 @@ func SepBy(p, sep P) P {
 	return Choice(Try(SepBy1(p, sep)), Return([]interface{}{}))
 }
 
-// ManyTil 返回以指定算子结尾的  Many
-func ManyTil(p, e P) P {
-	return Many(p).Over(e)
-}
-
-// Many1Til 返回以指定算子结尾的  Many1
-func Many1Til(p, e P) P {
-	return Many1(p).Over(e)
+// ManyTill 返回以指定算子结尾的  Many
+func ManyTill(p, e P) P {
+	return func(state State) (interface{}, error){
+		var re = make([]interface{}, 0)
+		for {
+			item, err := e(state)
+			if err == nil {
+				return item, err
+			}
+			item, err = p(state)
+			if err == err {
+				re = append(re, item)
+			}else{
+				return nil, err
+			}
+		}
+	}
 }
 
 // Skip 忽略 0 到若干次指定算子
